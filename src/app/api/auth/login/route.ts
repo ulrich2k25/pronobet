@@ -29,35 +29,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
     }
 
-    const secret = process.env.JWT_SECRET!;
+    const secret = process.env.JWT_SECRET;
     if (!secret) {
       return NextResponse.json({ error: "JWT_SECRET manquant." }, { status: 500 });
     }
 
-    const token = jwt.sign(
-      { sub: user.id, username: user.username },
-      secret,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ sub: user.id, username: user.username }, secret, {
+      expiresIn: "7d",
+    });
 
     const res = NextResponse.json({ ok: true }, { status: 200 });
 
-    // Cookie sécurisé (httpOnly)
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookies.set({
       name: "pb_token",
       value: token,
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // en prod => true (https)
+      secure: isProd, // ✅ IMPORTANT sur Vercel/HTTPS (iPhone & in-app)
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return res;
   } catch (e: any) {
-    return NextResponse.json(
-      { error: "Requête invalide.", details: e?.message },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Requête invalide.", details: e?.message }, { status: 400 });
   }
 }

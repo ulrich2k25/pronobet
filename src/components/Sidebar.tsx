@@ -1,8 +1,8 @@
 ﻿"use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { BarChart3, History, LogOut, Trophy, User, Ticket } from "lucide-react";
 
 type Item = { label: string; href: string; icon: React.ReactNode };
@@ -20,7 +20,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -28,7 +28,6 @@ export default function Sidebar() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
 
-  // ✅ EXACTEMENT même logique que Profil
   useEffect(() => {
     let cancelled = false;
 
@@ -40,12 +39,10 @@ export default function Sidebar() {
         });
 
         const data = await res.json().catch(() => null);
-
         if (cancelled) return;
 
         setAuthed(!!data?.authenticated);
-        if (data?.user) setMe(data.user);
-        else setMe(null);
+        setMe(data?.user ?? null);
       } catch {
         if (!cancelled) {
           setAuthed(false);
@@ -59,10 +56,8 @@ export default function Sidebar() {
     };
   }, []);
 
-  // ✅ VRAI logout
   async function logout() {
     if (loadingLogout) return;
-
     setLoadingLogout(true);
 
     try {
@@ -75,6 +70,9 @@ export default function Sidebar() {
     setMe(null);
     setAuthed(false);
 
+    // ✅ fermer le drawer mobile si ouvert
+    onNavigate?.();
+
     router.replace("/login");
     router.refresh();
   }
@@ -83,15 +81,13 @@ export default function Sidebar() {
   const planLabel = authed ? "Accès activé" : "Non connecté";
 
   return (
-    <aside
+    <div
       className={[
-        "fixed left-0 top-0 z-40",
-        "h-screen w-[300px]",
-        "hidden md:block",
+        "h-full w-full",
         "bg-white/5 backdrop-blur-xl",
-        "border-r border-white/10",
+        "border border-white/10 md:border-r md:border-l-0 md:border-t-0 md:border-b-0",
         "shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_30px_80px_rgba(0,0,0,0.45)]",
-        "overflow-hidden",
+        "overflow-hidden rounded-3xl md:rounded-none",
       ].join(" ")}
     >
       <div className="h-full flex flex-col overflow-hidden">
@@ -121,6 +117,7 @@ export default function Sidebar() {
                 <Link
                   key={it.href}
                   href={it.href}
+                  onClick={() => onNavigate?.()}
                   className={[
                     "group w-full flex items-center gap-3 rounded-2xl px-4 py-3 border transition",
                     "hover:translate-x-[2px] hover:border-white/15",
@@ -160,7 +157,7 @@ export default function Sidebar() {
                 <span className="font-medium text-white/80">Code promo</span>
               </div>
               <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-200 border border-emerald-400/20">
-                Bonnus
+                BONNUS
               </span>
             </div>
           </div>
@@ -202,6 +199,6 @@ export default function Sidebar() {
           )}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }
