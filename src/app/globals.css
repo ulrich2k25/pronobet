@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* ✅ Variables de thème (dark premium) */
+:root {
+  --bg0: #050816;
+  --bg1: #070a1f;
+  --card: rgba(255, 255, 255, 0.06);
+  --card2: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.10);
+  --border2: rgba(255, 255, 255, 0.14);
+
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.62);
+
+  --emerald: #34d399;
+  --emerald2: #10b981;
+  --accent: #f59e0b; /* petit accent chaud */
+}
+
+/* Base */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 20% 0%, rgba(16, 185, 129, 0.20), transparent 55%),
+              radial-gradient(900px 700px at 90% 10%, rgba(245, 158, 11, 0.14), transparent 55%),
+              radial-gradient(900px 700px at 50% 100%, rgba(59, 130, 246, 0.12), transparent 55%),
+              linear-gradient(180deg, var(--bg1), var(--bg0));
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  overflow-x: hidden;
+}
+
+/* ✅ petit “grain” très léger (premium) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+}
+
+/* Scrollbar (Windows) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Sélection */
+::selection {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+/* ✅ helper “glass” (si tu veux l’utiliser plus tard) */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(14px);
+}
