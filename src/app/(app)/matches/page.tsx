@@ -1,5 +1,4 @@
-﻿"use client";
-
+﻿import { Suspense } from "react";
 import MatchAnalysis from "@/components/MatchAnalysis";
 
 export default function Page() {
@@ -16,7 +15,9 @@ export default function Page() {
       <div className="mx-auto w-full max-w-[980px] px-2 sm:px-4 md:px-6">
         <div className="rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_40px_120px_rgba(0,0,0,0.55)]">
           <div className="p-4 sm:p-6 md:p-8">
-            <MatchAnalysis />
+            <Suspense fallback={<div className="text-white/60">Chargement…</div>}>
+              <MatchAnalysis />
+            </Suspense>
           </div>
         </div>
 
