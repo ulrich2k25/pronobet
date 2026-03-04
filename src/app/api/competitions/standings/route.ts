@@ -7,15 +7,23 @@ export async function GET(req: Request) {
   const season = Number(searchParams.get("season") || 0);
 
   if (!leagueId || !season) {
-    return NextResponse.json({ ok: false, error: "Missing leagueId/season" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Missing leagueId/season" },
+      { status: 400 }
+    );
   }
 
   try {
     const data = await footballGet("/standings", { league: leagueId, season });
     const league = data?.response?.[0]?.league;
 
-    // standings = array de groupes. On renvoie tout
-    const standings = league?.standings || [];
+    // ✅ standings peut être: [ [rows], [rows], ... ] (groupes)
+    const groups = league?.standings || [];
+
+    // ✅ on aplatit -> rows[]
+    const flat = Array.isArray(groups)
+      ? groups.flat().filter((r: any) => r && r.team && r.team.name)
+      : [];
 
     return NextResponse.json({
       ok: true,
@@ -26,7 +34,9 @@ export async function GET(req: Request) {
         country: league?.country,
         season: league?.season,
       },
-      standings,
+      standings: flat, // ✅ IMPORTANT: tableau plat
+      groupsCount: Array.isArray(groups) ? groups.length : 0,
+      rowsCount: flat.length,
     });
   } catch (e: any) {
     return NextResponse.json(
