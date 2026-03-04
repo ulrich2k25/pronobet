@@ -407,7 +407,7 @@ export default function Home() {
 
           {result && (
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-sm text-white/60 mb-2">Résultat (mock)</div>
+              <div className="text-sm text-white/60 mb-2">Résultat</div>
               <div className="font-semibold">{result.match}</div>
               <div className="mt-2 text-sm text-white/70">
                 Probas: Home {Math.round(result.probs.home * 100)}% • Draw{" "}
