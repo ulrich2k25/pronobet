@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { footballGet } from "@/lib/football";
 
 function toMatchRow(m: any) {
@@ -36,8 +36,13 @@ function extractCurrentSeasonYear(leaguesData: any): number | null {
   return null;
 }
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
-  const teamId = Number(ctx.params.id);
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const teamId = Number(id);
   if (!teamId) {
     return NextResponse.json({ ok: false, error: "BAD_TEAM_ID" }, { status: 400 });
   }
