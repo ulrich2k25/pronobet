@@ -148,6 +148,9 @@ export default function Home() {
   // ✅ scroll direct sur la section analyse (image 2)
   const analyzeRef = useRef<HTMLDivElement | null>(null);
 
+  // ✅ scroll sur le résultat après analyse (mobile)
+  const resultRef = useRef<HTMLDivElement | null>(null);
+
   // ✅ éviter auto analyse 2 fois
   const autoRanRef = useRef(false);
 
@@ -161,21 +164,21 @@ export default function Home() {
 
   // ✅ Pré-remplir depuis URL venant d’un match
   useEffect(() => {
-  const team1 = (searchParams.get("team1") || "").trim();
-  const team2 = (searchParams.get("team2") || "").trim();
-  const team1Id = Number(searchParams.get("team1Id") || "0");
-  const team2Id = Number(searchParams.get("team2Id") || "0");
-  const team1Logo = (searchParams.get("team1Logo") || "").trim();
-  const team2Logo = (searchParams.get("team2Logo") || "").trim();
+    const team1 = (searchParams.get("team1") || "").trim();
+    const team2 = (searchParams.get("team2") || "").trim();
+    const team1Id = Number(searchParams.get("team1Id") || "0");
+    const team2Id = Number(searchParams.get("team2Id") || "0");
+    const team1Logo = (searchParams.get("team1Logo") || "").trim();
+    const team2Logo = (searchParams.get("team2Logo") || "").trim();
 
-  if (team1 && team2 && team1Id > 0 && team2Id > 0) {
-    setTeamA({ id: team1Id, name: team1, logo: team1Logo || undefined });
-    setTeamB({ id: team2Id, name: team2, logo: team2Logo || undefined });
+    if (team1 && team2 && team1Id > 0 && team2Id > 0) {
+      setTeamA({ id: team1Id, name: team1, logo: team1Logo || undefined });
+      setTeamB({ id: team2Id, name: team2, logo: team2Logo || undefined });
 
-    setTimeout(() => {
-      analyzeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  }
+      setTimeout(() => {
+        analyzeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // mount only
 
@@ -191,10 +194,9 @@ export default function Home() {
     (async () => {
       setLoadingFixturesA(true);
       try {
-        const res = await fetch(
-          `/api/fixtures/next?teamId=${teamA.id}&days=60`,
-          { cache: "no-store" }
-        );
+        const res = await fetch(`/api/fixtures/next?teamId=${teamA.id}&days=60`, {
+          cache: "no-store",
+        });
 
         const data = await res.json().catch(() => null);
         if (!alive) return;
@@ -264,6 +266,11 @@ export default function Home() {
       }
 
       setResult(out.prediction);
+
+      // ✅ scroll direct vers le résultat (visible sur mobile)
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
 
       // Save history (localStorage)
       const item = {
@@ -339,86 +346,103 @@ export default function Home() {
             {loading ? "Chargement..." : 'Analyser le match avec "IA"'}
           </button>
 
-          {/* ✅ Prochains matchs */}
-          {teamA?.id && (
-            <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-              <div className="px-6 py-4 text-sm font-semibold text-white/80">
-                Prochains matchs
+          {/* ✅ Résultat + Prochains matchs avec ordre dynamique */}
+          <div className="mt-8 flex flex-col gap-6">
+            {/* ✅ Résultat d'abord après analyse */}
+            {result && (
+              <div
+                ref={resultRef}
+                className="order-1 rounded-2xl border border-white/10 bg-white/5 p-5"
+              >
+                <div className="text-sm text-white/60 mb-2">Résultat</div>
+                <div className="font-semibold">{result.match}</div>
+                <div className="mt-2 text-sm text-white/70">
+                  Probas: Home {Math.round(result.probs.home * 100)}% • Draw{" "}
+                  {Math.round(result.probs.draw * 100)}% • Away{" "}
+                  {Math.round(result.probs.away * 100)}%
+                </div>
+                <div className="mt-1 text-sm text-emerald-200">
+                  Tip: {result.tip} (conf {Math.round(result.confidence * 100)}%)
+                </div>
               </div>
+            )}
 
-              {loadingFixturesA && (
-                <div className="px-6 pb-6 text-sm text-white/50">Chargement...</div>
-              )}
+            {/* ✅ Prochains matchs : avant analyse -> 1er ; après analyse -> 2e */}
+            {teamA?.id && (
+              <div className={result ? "order-2" : "order-1"}>
+                <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+                  <div className="px-6 py-4 text-sm font-semibold text-white/80">
+                    Prochains matchs
+                  </div>
 
-              {!loadingFixturesA && fixturesA.length === 0 && (
-                <div className="px-6 pb-6 text-sm text-white/50">Aucun match à venir.</div>
-              )}
+                  {loadingFixturesA && (
+                    <div className="px-6 pb-6 text-sm text-white/50">Chargement...</div>
+                  )}
 
-              <div className="px-4 pb-5 space-y-3">
-                {fixturesA.map((fx, idx) => {
-                  const d = new Date(fx.fixture.date);
-                  const dd = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-                  const tt = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+                  {!loadingFixturesA && fixturesA.length === 0 && (
+                    <div className="px-6 pb-6 text-sm text-white/50">
+                      Aucun match à venir.
+                    </div>
+                  )}
 
-                  const isHomeA = fx.teams.home.id === teamA.id;
-                  const opp = isHomeA ? fx.teams.away : fx.teams.home;
+                  <div className="px-4 pb-5 space-y-3">
+                    {fixturesA.map((fx, idx) => {
+                      const d = new Date(fx.fixture.date);
+                      const dd = d.toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      });
+                      const tt = d.toLocaleTimeString("fr-FR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
 
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setTeamB({ id: opp.id, name: opp.name, logo: opp.logo });
-                      }}
-                      className="w-full rounded-xl border border-white/10 bg-black/20 px-5 py-4 hover:bg-white/5 transition"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="w-20 text-left text-xs text-white/55 leading-5">
-                          <div>{dd}</div>
-                          <div>{tt}</div>
-                        </div>
+                      const isHomeA = fx.teams.home.id === teamA.id;
+                      const opp = isHomeA ? fx.teams.away : fx.teams.home;
 
-                        <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
-                          <span className="text-sm font-semibold text-emerald-200 truncate">
-                            {fx.teams.home.name}
-                          </span>
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setTeamB({ id: opp.id, name: opp.name, logo: opp.logo });
+                          }}
+                          className="w-full rounded-xl border border-white/10 bg-black/20 px-5 py-4 hover:bg-white/5 transition"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="w-20 text-left text-xs text-white/55 leading-5">
+                              <div>{dd}</div>
+                              <div>{tt}</div>
+                            </div>
 
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={fx.teams.home.logo} alt="" className="h-6 w-6 rounded" />
+                            <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
+                              <span className="text-sm font-semibold text-emerald-200 truncate">
+                                {fx.teams.home.name}
+                              </span>
 
-                          <span className="text-xs text-white/40">vs</span>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={fx.teams.home.logo} alt="" className="h-6 w-6 rounded" />
 
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={fx.teams.away.logo} alt="" className="h-6 w-6 rounded" />
+                              <span className="text-xs text-white/40">vs</span>
 
-                          <span className="text-sm font-semibold text-white/90 truncate">
-                            {fx.teams.away.name}
-                          </span>
-                        </div>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={fx.teams.away.logo} alt="" className="h-6 w-6 rounded" />
 
-                        <div className="w-6" />
-                      </div>
-                    </button>
-                  );
-                })}
+                              <span className="text-sm font-semibold text-white/90 truncate">
+                                {fx.teams.away.name}
+                              </span>
+                            </div>
+
+                            <div className="w-6" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-
-          {result && (
-            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-sm text-white/60 mb-2">Résultat</div>
-              <div className="font-semibold">{result.match}</div>
-              <div className="mt-2 text-sm text-white/70">
-                Probas: Home {Math.round(result.probs.home * 100)}% • Draw{" "}
-                {Math.round(result.probs.draw * 100)}% • Away{" "}
-                {Math.round(result.probs.away * 100)}%
-              </div>
-              <div className="mt-1 text-sm text-emerald-200">
-                Tip: {result.tip} (conf {Math.round(result.confidence * 100)}%)
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="mt-6 text-center text-xs text-white/45">

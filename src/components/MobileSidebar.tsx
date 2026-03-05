@@ -16,31 +16,57 @@ export default function MobileSidebar() {
 
   return (
     <>
-      {/* Bouton menu (mobile seulement) */}
+      {/* ✅ Bouton menu premium (mobile only) */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-[60] rounded-xl border border-white/10 bg-black/40 backdrop-blur px-3 py-2 text-white"
         aria-label="Ouvrir le menu"
+        className="
+          md:hidden fixed top-4 left-4 z-[60]
+          h-11 w-11 rounded-2xl
+          bg-black/60 backdrop-blur
+          border border-white/15
+          shadow-[0_10px_30px_rgba(0,0,0,0.45)]
+          flex items-center justify-center
+          active:scale-95 transition
+        "
       >
-        ☰
+        <span className="text-white text-xl leading-none">☰</span>
       </button>
 
-      {/* Overlay */}
+      {/* ✅ Overlay (plus doux + blur) */}
       <div
-        className={`md:hidden fixed inset-0 z-[55] bg-black/60 transition-opacity ${
+        className={`md:hidden fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm transition-opacity ${
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setOpen(false)}
       />
 
-      {/* Drawer */}
+      {/* ✅ Drawer + header (fermer) */}
       <aside
-        className={`md:hidden fixed top-0 left-0 z-[56] h-dvh w-[86%] max-w-[320px] p-3 transition-transform ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`md:hidden fixed top-0 left-0 z-[56] h-dvh w-[86%] max-w-[340px]
+          border-r border-white/10 bg-[#0b1220]/95 backdrop-blur
+          shadow-[20px_0_60px_rgba(0,0,0,0.6)]
+          transition-transform ${open ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
-        <Sidebar onNavigate={() => setOpen(false)} />
+        {/* Header du drawer */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+          <div className="text-white/90 font-semibold">Menu</div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Fermer le menu"
+            className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center justify-center"
+          >
+            <span className="text-white/80 text-lg leading-none">✕</span>
+          </button>
+        </div>
+
+        {/* Contenu sidebar */}
+        <div className="p-3">
+          <Sidebar onNavigate={() => setOpen(false)} />
+        </div>
       </aside>
     </>
   );
