@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Me = { id: string; username: string };
+type Me = {
+  id: string;
+  username: string;
+};
 
 type HistoryItem = {
   id: string;
@@ -12,7 +15,11 @@ type HistoryItem = {
   teamB: string;
   prediction: {
     match: string;
-    probs: { home: number; draw: number; away: number };
+    probs: {
+      home: number;
+      draw: number;
+      away: number;
+    };
     tip: string;
     confidence: number;
   };
@@ -25,6 +32,7 @@ function safeNum(n: any) {
 
 export default function ProfilPage() {
   const router = useRouter();
+
   const [me, setMe] = useState<Me | null>(null);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -35,138 +43,188 @@ export default function ProfilPage() {
         cache: "no-store",
         credentials: "include",
       });
+
       const data = await res.json().catch(() => null);
+
       setAuthed(!!data?.authenticated);
-      if (data?.user) setMe(data.user);
+
+      if (data?.user) {
+        setMe(data.user);
+      }
     })();
 
     try {
       const raw = localStorage.getItem("pb_history");
+
       const arr = raw ? (JSON.parse(raw) as HistoryItem[]) : [];
+
       setItems(Array.isArray(arr) ? arr : []);
     } catch {
       setItems([]);
     }
   }, []);
 
-  // ✅ on garde juste "total analyses" (plus de stats affichées)
   const totalAnalyses = useMemo(() => items.length, [items]);
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
     router.replace("/login");
     router.refresh();
   }
 
   return (
-    <div className="py-10">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-extrabold">Profil</h1>
-        <p className="mt-2 text-white/60">Gère ton compte et retrouve tes infos.</p>
-      </div>
+    <div className="w-full">
+      <div className="mx-auto w-full max-w-[980px]">
+        {/* Header */}
+        <div className="mb-5 pt-1 text-left md:mb-8 md:pt-4 md:text-center">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-200 md:hidden">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Mon espace
+          </div>
 
-      <div className="w-full max-w-[980px] mx-auto rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
-        <div className="p-6 md:p-8">
-          {/* Carte utilisateur */}
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-2xl bg-emerald-500/15 border border-emerald-400/25 flex items-center justify-center">
-                <span className="text-emerald-200 font-bold text-xl">P</span>
+          <h1 className="text-[30px] font-extrabold leading-tight tracking-tight text-white md:text-5xl">
+            Profil
+          </h1>
+
+          <p className="mt-1.5 text-sm leading-6 text-white/55 md:text-base">
+            Gère ton compte et retrouve tes informations.
+          </p>
+        </div>
+
+        <div className="space-y-3 md:space-y-5">
+          {/* Utilisateur */}
+          <section className="rounded-[22px] border border-white/[0.08] bg-white/[0.035] p-4 sm:p-5 md:rounded-3xl md:p-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/10 sm:h-14 sm:w-14">
+                <span className="text-lg font-extrabold text-emerald-200 sm:text-xl">
+                  {me?.username ? me.username.charAt(0).toUpperCase() : "P"}
+                </span>
               </div>
 
-              <div className="flex-1">
-                <div className="text-sm text-white/50">Utilisateur</div>
-                <div className="text-xl font-bold text-white/90">
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                  Utilisateur
+                </div>
+
+                <div className="mt-0.5 truncate text-lg font-bold text-white sm:text-xl">
                   {me?.username || (authed ? "Compte" : "Non connecté")}
                 </div>
-                <div className="text-xs text-white/50">
+
+                <div className="mt-0.5 text-[11px] leading-4 text-white/40 sm:text-xs">
                   {authed
                     ? "Accès activé"
                     : "Connecte-toi pour accéder à toutes les fonctionnalités."}
                 </div>
               </div>
+            </div>
 
+            {/* Action compte séparée sur mobile */}
+            <div className="mt-4 border-t border-white/[0.07] pt-4">
               {authed ? (
                 <button
+                  type="button"
                   onClick={logout}
-                  className="rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-3 text-white/80 hover:text-white"
+                  className="min-h-[46px] w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/65 transition hover:bg-white/[0.08] hover:text-white sm:w-auto"
                 >
                   Déconnexion
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => router.push("/login?next=/profil")}
-                  className="rounded-2xl bg-emerald-600/80 hover:bg-emerald-600 transition px-4 py-3 font-semibold"
+                  className="min-h-[46px] w-full rounded-xl bg-emerald-500 px-5 text-sm font-bold text-[#04150f] transition hover:bg-emerald-400 sm:w-auto"
                 >
                   Se connecter
                 </button>
               )}
             </div>
-          </div>
+          </section>
 
-          {/* ✅ Infos (remplace la section stats en 2 cartes) */}
-          <div className="mt-6">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-6 flex items-center justify-between gap-4">
+          {/* Analyses */}
+          <section className="rounded-[22px] border border-white/[0.08] bg-white/[0.035] p-4 sm:p-5 md:rounded-2xl md:p-6">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="text-xs tracking-widest text-white/50">ANALYSES</div>
-                <div className="mt-2 text-3xl font-extrabold text-emerald-200">
+                <div className="text-[10px] font-semibold tracking-[0.16em] text-white/35">
+                  ANALYSES
+                </div>
+
+                <div className="mt-1 text-3xl font-extrabold tracking-tight text-emerald-200">
                   {totalAnalyses}
                 </div>
-                <div className="mt-1 text-xs text-white/50">
-                  Analyses enregistrées sur cet appareil
+
+                <div className="mt-0.5 text-[11px] leading-4 text-white/40 sm:text-xs">
+                  Enregistrées sur cet appareil
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={() => router.push("/historique")}
-                className="shrink-0 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-3 font-semibold text-white/80"
+                className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs font-semibold text-white/65 transition hover:bg-white/[0.08] hover:text-white sm:px-4 sm:py-3 sm:text-sm"
               >
-                Voir l’historique
+                Voir l&apos;historique
               </button>
             </div>
-          </div>
+          </section>
 
-          {/* Actions */}
-          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-6">
-            <div className="text-sm font-semibold text-white/90">Actions rapides</div>
+          {/* Actions rapides */}
+          <section className="rounded-[22px] border border-white/[0.08] bg-white/[0.035] p-4 sm:p-5 md:rounded-2xl md:p-6">
+            <div className="text-sm font-bold text-white/85">
+              Actions rapides
+            </div>
 
-            {/* ✅ on passe à 2 boutons, donc 2 colonnes en desktop */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <button
-                onClick={() => router.push("/")}
-                className="rounded-2xl bg-emerald-600/80 hover:bg-emerald-600 transition px-4 py-4 font-semibold"
+                type="button"
+                onClick={() => router.push("/matches")}
+                className="min-h-[50px] rounded-xl bg-emerald-500 px-4 text-sm font-bold text-[#04150f] transition hover:bg-emerald-400 active:scale-[0.99]"
               >
                 Analyser un match
               </button>
 
               <button
+                type="button"
                 onClick={() => router.push("/historique")}
-                className="rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-4 font-semibold text-white/80"
+                className="min-h-[50px] rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white active:scale-[0.99]"
               >
-                Voir l’historique
+                Voir l&apos;historique
               </button>
             </div>
+          </section>
 
-            <div className="mt-4 text-xs text-white/45"></div>
-          </div>
+          {/* Zone sensible */}
+          <section className="rounded-[22px] border border-red-400/15 bg-red-500/[0.06] p-4 sm:p-5 md:rounded-2xl md:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-400/15 bg-red-500/10 text-sm">
+                !
+              </div>
 
-          {/* Danger zone */}
-          <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-6">
-            <div className="text-sm font-semibold text-red-200">Zone sensible</div>
-            <div className="mt-2 text-xs text-white/60">
-              Efface ton historique local (sur cet appareil uniquement).
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-red-200">
+                  Zone sensible
+                </div>
+
+                <p className="mt-1 text-[11px] leading-5 text-white/45 sm:text-xs">
+                  Cette action efface uniquement l&apos;historique enregistré
+                  sur cet appareil.
+                </p>
+              </div>
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 localStorage.removeItem("pb_history");
                 setItems([]);
               }}
-              className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 hover:bg-red-500/15 transition px-4 py-3 text-red-200"
+              className="mt-4 min-h-[46px] w-full rounded-xl border border-red-400/15 bg-red-500/[0.08] px-4 text-sm font-semibold text-red-200 transition hover:bg-red-500/[0.14] sm:w-auto"
             >
-              Effacer l’historique local
+              Effacer l&apos;historique local
             </button>
-          </div>
+          </section>
         </div>
       </div>
     </div>
