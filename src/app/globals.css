@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
-/* ✅ Variables de thème (dark premium) */
+/* PREDIXFOOT / MATCH LAB — fondations visuelles.
+   Les variables historiques restent disponibles pour les pages existantes. */
 :root {
-  --bg0: #050816;
-  --bg1: #070a1f;
+  --bg0: #060c09;
+  --bg1: #0b1610;
   --card: rgba(255, 255, 255, 0.06);
   --card2: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.10);
@@ -12,66 +13,77 @@
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.62);
 
+  /* Conservation des couleurs utilisées par les composants existants. */
   --emerald: #34d399;
   --emerald2: #10b981;
-  --accent: #f59e0b; /* petit accent chaud */
+  --accent: #f59e0b;
+
+  /* Palette de la nouvelle identité, pour les futurs composants MATCH LAB. */
+  --pf-canvas: #060c09;
+  --pf-surface: #101c15;
+  --pf-surface-raised: #17251c;
+  --pf-lime: #c9f76b;
+  --pf-line: rgba(201, 247, 107, 0.14);
 }
 
-/* Base */
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   color: var(--text);
-  background: radial-gradient(1200px 800px at 20% 0%, rgba(16, 185, 129, 0.20), transparent 55%),
-              radial-gradient(900px 700px at 90% 10%, rgba(245, 158, 11, 0.14), transparent 55%),
-              radial-gradient(900px 700px at 50% 100%, rgba(59, 130, 246, 0.12), transparent 55%),
-              linear-gradient(180deg, var(--bg1), var(--bg0));
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
-    "Segoe UI Emoji";
+  background-color: var(--pf-canvas);
+  background-image:
+    radial-gradient(950px 550px at 90% -10%, rgba(170, 224, 90, 0.075), transparent 68%),
+    radial-gradient(850px 680px at -15% 58%, rgba(43, 92, 60, 0.11), transparent 68%),
+    linear-gradient(180deg, #0a1510 0%, #070e0b 48%, #060b09 100%);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
   overflow-x: hidden;
 }
 
-/* ✅ petit “grain” très léger (premium) */
+/* Texture imperceptible : un peu de profondeur, sans distraire la lecture. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.6px, transparent 0.6px);
   background-size: 48px 48px;
   opacity: 0.08;
-  mix-blend-mode: overlay;
 }
 
-/* Scrollbar (Windows) */
+/* Barres de défilement : fines et discrètes, y compris sur Windows. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: rgba(201, 247, 107, 0.20) transparent;
 }
 
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
+
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(201, 247, 107, 0.18);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(201, 247, 107, 0.28);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-/* Sélection */
 ::selection {
-  background: rgba(16, 185, 129, 0.25);
+  color: #07100b;
+  background: rgba(201, 247, 107, 0.85);
 }
 
-/* ✅ helper “glass” (si tu veux l’utiliser plus tard) */
+/* Utilitaire existant, conservé pour éviter toute régression visuelle. */
 .glass {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.10);

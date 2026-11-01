@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -71,10 +71,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050816] px-4 py-6 text-white sm:px-6">
+    <main className="relative min-h-screen overflow-hidden bg-[#0A140F] px-4 py-6 text-white sm:px-6">
       {/* Glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-[#C9F76B]/10 blur-3xl" />
         <div className="absolute -right-32 top-1/3 h-72 w-72 rounded-full bg-sky-500/[0.07] blur-3xl" />
       </div>
 
@@ -82,8 +82,8 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="flex justify-center pt-2 sm:pt-5">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10">
-              <Sparkles className="h-4 w-4 text-emerald-300" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-lime-400/20 bg-[#C9F76B]/10">
+              <Sparkles className="h-4 w-4 text-[#C9F76B]" />
             </div>
 
             <div>
@@ -103,7 +103,7 @@ export default function RegisterPage() {
           <div className="w-full">
             {/* Intro */}
             <div className="mb-5 text-center sm:mb-6">
-              <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-semibold text-emerald-200">
+              <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-lime-400/15 bg-[#C9F76B]/10 px-3 py-1.5 text-[10px] font-semibold text-[#C9F76B]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 Accès PronoBet
               </div>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Card */}
-            <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 shadow-[0_25px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl sm:p-6">
+            <div className="rounded-[24px] border border-white/10 bg-[#111F17] p-4 shadow-[0_25px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl sm:p-6">
               <form onSubmit={onSubmit} className="space-y-4">
                 {/* Username */}
                 <div>
@@ -136,15 +136,15 @@ export default function RegisterPage() {
                       w-full
                       rounded-xl
                       border border-white/10
-                      bg-black/20
+                      bg-[#09130D]
                       px-4
                       text-sm
                       text-white
                       outline-none
                       transition
                       placeholder:text-white/25
-                      focus:border-emerald-400/30
-                      focus:bg-black/25
+                      focus:border-lime-400/30
+                      focus:bg-[#0D1A12]
                     "
                     placeholder="Choisis un nom d'utilisateur"
                     value={username}
@@ -168,15 +168,15 @@ export default function RegisterPage() {
                       w-full
                       rounded-xl
                       border border-white/10
-                      bg-black/20
+                      bg-[#09130D]
                       px-4
                       text-sm
                       text-white
                       outline-none
                       transition
                       placeholder:text-white/25
-                      focus:border-emerald-400/30
-                      focus:bg-black/25
+                      focus:border-lime-400/30
+                      focus:bg-[#0D1A12]
                     "
                     placeholder="Choisis un mot de passe"
                     type="password"
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                       Code promo
                     </label>
 
-                    <span className="rounded-full border border-emerald-400/15 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-200">
+                    <span className="rounded-full border border-lime-400/15 bg-[#C9F76B]/10 px-2 py-0.5 text-[9px] font-semibold text-[#C9F76B]">
                       Obligatoire
                     </span>
                   </div>
@@ -206,16 +206,16 @@ export default function RegisterPage() {
                       min-h-[52px]
                       w-full
                       rounded-xl
-                      border border-emerald-400/25
-                      bg-emerald-500/[0.05]
+                      border border-lime-400/25
+                      bg-[#C9F76B]/[0.05]
                       px-4
                       text-sm
                       text-white
                       outline-none
                       transition
                       placeholder:text-white/25
-                      focus:border-emerald-400/50
-                      focus:bg-emerald-500/[0.07]
+                      focus:border-lime-400/50
+                      focus:bg-[#C9F76B]/[0.07]
                     "
                     placeholder="Entre ton code promo"
                     value={promoCode}
@@ -232,7 +232,7 @@ export default function RegisterPage() {
 
                 {/* Succès */}
                 {ok && (
-                  <div className="rounded-xl border border-emerald-400/15 bg-emerald-500/10 px-4 py-3 text-xs leading-5 text-emerald-200">
+                  <div className="rounded-xl border border-lime-400/15 bg-[#C9F76B]/10 px-4 py-3 text-xs leading-5 text-[#C9F76B]">
                     Compte créé et connecté !
                   </div>
                 )}
@@ -248,14 +248,14 @@ export default function RegisterPage() {
                     items-center
                     justify-center
                     rounded-xl
-                    bg-emerald-500
+                    bg-[#C9F76B]
                     px-5
                     text-sm
                     font-bold
-                    text-[#04150f]
+                    text-[#0A140F]
                     shadow-[0_12px_30px_rgba(16,185,129,0.15)]
                     transition
-                    hover:bg-emerald-400
+                    hover:bg-[#D9FF91]
                     active:scale-[0.99]
                     disabled:cursor-not-allowed
                     disabled:opacity-40
