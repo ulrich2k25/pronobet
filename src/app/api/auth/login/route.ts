@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -35,10 +35,24 @@ export async function POST(req: Request) {
     }
 
     const token = jwt.sign({ sub: user.id, username: user.username }, secret, {
-      expiresIn: "7d",
+      expiresIn: "30d",
     });
 
-    const res = NextResponse.json({ ok: true }, { status: 200 });
+    const { data: admin, error: adminError } = await supabaseAdmin
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminError) {
+      console.error("Erreur vérification administrateur:", adminError.message);
+      return NextResponse.json({ error: "Erreur de connexion." }, { status: 500 });
+    }
+
+    const res = NextResponse.json(
+      { ok: true, isAdmin: Boolean(admin) },
+      { status: 200 }
+    );
 
     const isProd = process.env.NODE_ENV === "production";
 
@@ -49,7 +63,7 @@ export async function POST(req: Request) {
       sameSite: "lax",
       secure: isProd, // ✅ IMPORTANT sur Vercel/HTTPS (iPhone & in-app)
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     return res;

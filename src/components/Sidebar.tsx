@@ -26,6 +26,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   const [me, setMe] = useState<Me | null>(null);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
         setAuthed(!!data?.authenticated);
         setMe(data?.user ?? null);
+        setIsAdmin(data?.authenticated === true && data?.isAdmin === true);
       } catch {
         if (!cancelled) {
           setAuthed(false);
@@ -106,7 +108,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
 
         {/* Nav */}
-        <div className="px-6 py-4 flex-1 min-h-0">
+        <div className="px-6 py-4 flex-1 min-h-0 overflow-y-auto">
           <div className="text-[11px] tracking-[0.22em] text-white/35 mb-3">ANALYSE</div>
 
           <div className="space-y-2">
@@ -172,6 +174,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         </div>
 
+        {/* Navigation réservée à l'administrateur */}
+        {isAdmin && (
+          <div className="px-6 pb-3">
+            <Link
+              href="/admin"
+              onClick={() => onNavigate?.()}
+              className="flex items-center gap-3 rounded-2xl border border-lime-400/30 bg-lime-400/10 px-4 py-3 font-semibold text-lime-300 hover:bg-lime-400/15"
+            >
+              <span>Administration</span>
+            </Link>
+          </div>
+        )}
         {/* Footer */}
         <div className="mt-auto px-6 py-4 border-t border-white/10 bg-black/10">
           <div className="flex items-center gap-3">

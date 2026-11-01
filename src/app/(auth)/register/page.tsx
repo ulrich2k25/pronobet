@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react";
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [promoCode, setPromoCode] = useState("Bonnus");
+  const [promoCode, setPromoCode] = useState("BONNUS");
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,33 +40,11 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2) Auto-login (pose le cookie pb_token)
-    const loginRes = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    });
-
-    if (!loginRes.ok) {
-      const loginData = await loginRes.json().catch(() => ({}));
-
-      setLoading(false);
-      setError(
-        loginData.error ||
-          "Compte créé, mais connexion impossible. Essaie /login.",
-      );
-      return;
-    }
-
+    // L'API d'inscription crée déjà la session de 30 jours.
     setOk(true);
     setLoading(false);
 
-    // 3) Retour au dashboard
+    // Redirection après inscription
     window.location.href = "/";
   }
 
@@ -105,15 +83,15 @@ export default function RegisterPage() {
             <div className="mb-5 text-center sm:mb-6">
               <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-lime-400/15 bg-[#C9F76B]/10 px-3 py-1.5 text-[10px] font-semibold text-[#C9F76B]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Accès PronoBet
+                AccÃ¨s PronoBet
               </div>
 
               <h1 className="text-[30px] font-extrabold tracking-tight text-white sm:text-3xl">
-                Créer un compte
+                CrÃ©er un compte
               </h1>
 
               <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-white/45">
-                Crée ton compte gratuitement pour accéder aux analyses PronoBet.
+                CrÃ©e ton compte gratuitement pour accÃ©der aux analyses PronoBet.
               </p>
             </div>
 
@@ -230,10 +208,10 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* Succès */}
+                {/* SuccÃ¨s */}
                 {ok && (
                   <div className="rounded-xl border border-lime-400/15 bg-[#C9F76B]/10 px-4 py-3 text-xs leading-5 text-[#C9F76B]">
-                    Compte créé et connecté !
+                    Compte crÃ©Ã© et connectÃ© !
                   </div>
                 )}
 
@@ -261,13 +239,13 @@ export default function RegisterPage() {
                     disabled:opacity-40
                   "
                 >
-                  {loading ? "Création du compte…" : "Créer mon compte"}
+                  {loading ? "CrÃ©ation du compteâ€¦" : "CrÃ©er mon compte"}
                 </button>
               </form>
 
               {/* Login */}
               <div className="mt-5 border-t border-white/[0.07] pt-5 text-center">
-                <p className="text-xs text-white/40">Tu as déjà un compte ?</p>
+                <p className="text-xs text-white/40">Tu as dÃ©jÃ  un compte ?</p>
 
                 <Link
                   href="/login"
@@ -282,8 +260,8 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <div className="pb-2 text-center text-[10px] leading-4 text-white/25">
-          Les analyses sont basées sur un modèle statistique et ne garantissent
-          aucun résultat.
+          Les analyses sont basÃ©es sur un modÃ¨le statistique et ne garantissent
+          aucun rÃ©sultat.
         </div>
       </div>
     </main>
