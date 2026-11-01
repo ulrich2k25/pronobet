@@ -2,14 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ClarityTracker from "@/components/ClarityTracker";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000");
+const siteUrl = "https://pronobet.vercel.app";
 
-const description =
-  "Découvrez PronoBet : matchs de football, statistiques, compétitions et analyses de matchs.";
+const description = "Découvre PronoBet : matchs, statistiques et analyses de football pour mieux comprendre chaque rencontre.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -27,17 +22,17 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/pronobet-logo.png",
+        url: "/pronobet-share.png",
         alt: "Logo officiel PronoBet",
       },
     ],
   },
 
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "PronoBet | Analyses de football",
     description,
-    images: ["/pronobet-logo.png"],
+    images: ["/pronobet-share.png"],
   },
 };
 
