@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { BarChart3, History, Trophy, User } from "lucide-react";
+import { BarChart3, History, ShieldCheck, Trophy, User } from "lucide-react";
 
 // Identical navigation routes; this component only changes visual presentation.
 const ITEMS = [
@@ -18,6 +19,18 @@ function isActive(pathname: string, href: string) {
 
 export default function MobileSidebar() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => setIsAdmin(data?.isAdmin === true))
+      .catch(() => setIsAdmin(false));
+  }, []);
+
+  const items = isAdmin
+    ? [...ITEMS, { label: "Admin", href: "/admin", icon: ShieldCheck }]
+    : ITEMS;
 
   return (
     <>
@@ -56,8 +69,8 @@ export default function MobileSidebar() {
         aria-label="Navigation principale"
         className="fixed inset-x-0 bottom-0 z-50 border-t border-[#39493E] bg-[#0B1510]/95 shadow-[0_-16px_38px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:hidden"
       >
-        <div className="mx-auto grid w-full max-w-screen-sm grid-cols-4 gap-1 px-2 pt-2 pb-[max(10px,env(safe-area-inset-bottom))]">
-          {ITEMS.map((item) => {
+        <div className={`mx-auto grid w-full max-w-screen-sm gap-1 px-2 pt-2 pb-[max(10px,env(safe-area-inset-bottom))] ${isAdmin ? "grid-cols-5" : "grid-cols-4"}`}>
+          {items.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
 
