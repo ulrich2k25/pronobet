@@ -245,7 +245,7 @@ export default function RegisterPage() {
 
               {/* Login */}
               <div className="mt-5 border-t border-white/[0.07] pt-5 text-center">
-                <p className="text-xs text-white/40">Tu as dÃ©jÃ  un compte ?</p>
+                <p className="text-xs text-white/40">Tu as déjà un compte ?</p>
 
                 <Link
                   href="/login"
