@@ -83,15 +83,15 @@ export default function RegisterPage() {
             <div className="mb-5 text-center sm:mb-6">
               <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-lime-400/15 bg-[#C9F76B]/10 px-3 py-1.5 text-[10px] font-semibold text-[#C9F76B]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                AccÃ¨s PronoBet
+                Accès PronoBet
               </div>
 
               <h1 className="text-[30px] font-extrabold tracking-tight text-white sm:text-3xl">
-                CrÃ©er un compte
+                Créer un compte
               </h1>
 
               <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-white/45">
-                CrÃ©e ton compte gratuitement pour accÃ©der aux analyses PronoBet.
+                Crée ton compte gratuitement pour accéder aux analyses PronoBet.
               </p>
             </div>
 
@@ -208,10 +208,10 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* SuccÃ¨s */}
+                {/* Succès */}
                 {ok && (
                   <div className="rounded-xl border border-lime-400/15 bg-[#C9F76B]/10 px-4 py-3 text-xs leading-5 text-[#C9F76B]">
-                    Compte crÃ©Ã© et connectÃ© !
+                    Compte créé et connecté !
                   </div>
                 )}
 
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                     disabled:opacity-40
                   "
                 >
-                  {loading ? "CrÃ©ation du compteâ€¦" : "CrÃ©er mon compte"}
+                  {loading ? "CrÃ©ation du compte…" : "Créer mon compte"}
                 </button>
               </form>
 
@@ -260,8 +260,8 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <div className="pb-2 text-center text-[10px] leading-4 text-white/25">
-          Les analyses sont basÃ©es sur un modÃ¨le statistique et ne garantissent
-          aucun rÃ©sultat.
+          Les analyses sont basées sur un modèle statistique et ne garantissent
+          aucun résultat.
         </div>
       </div>
     </main>
