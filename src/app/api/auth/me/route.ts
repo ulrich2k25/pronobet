@@ -1,80 +1,56 @@
 ﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDb } from "@/lib/db";
+
+const noStore = { "Cache-Control": "no-store" };
+
+function unauthenticated() {
+  return NextResponse.json({ authenticated: false }, { headers: noStore });
+}
 
 export async function GET() {
   const token = (await cookies()).get("pb_token")?.value;
   const secret = process.env.JWT_SECRET;
 
-  if (!token || !secret) {
-    return NextResponse.json(
-      { authenticated: false },
-      { headers: { "Cache-Control": "no-store" } }
-    );
+  if (!token || !secret) return unauthenticated();
+
+  let userId: string;
+  try {
+    const payload = jwt.verify(token, secret);
+    if (typeof payload === "string" || typeof payload.sub !== "string") {
+      return unauthenticated();
+    }
+    userId = payload.sub;
+  } catch {
+    return unauthenticated();
   }
 
   try {
-    const payload = jwt.verify(token, secret);
+    const sql = getDb();
+    const [user] = await sql`
+      SELECT u.id, u.username,
+        EXISTS (
+          SELECT 1 FROM public.admin_users AS a WHERE a.user_id = u.id
+        ) AS is_admin
+      FROM public.users AS u
+      WHERE u.id = ${userId}
+    `;
 
-    if (
-      typeof payload === "string" ||
-      typeof payload.sub !== "string"
-    ) {
-      return NextResponse.json(
-        { authenticated: false },
-        { headers: { "Cache-Control": "no-store" } }
-      );
-    }
-
-    const { data: user, error: userError } = await supabaseAdmin
-      .from("users")
-      .select("id,username")
-      .eq("id", payload.sub)
-      .maybeSingle();
-
-    if (userError) {
-      return NextResponse.json(
-        { error: "Erreur de vérification du compte." },
-        { status: 500 }
-      );
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { authenticated: false },
-        { headers: { "Cache-Control": "no-store" } }
-      );
-    }
-
-    const { data: admin, error: adminError } = await supabaseAdmin
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (adminError) {
-      return NextResponse.json(
-        { error: "Erreur de vérification du rôle." },
-        { status: 500 }
-      );
-    }
+    if (!user) return unauthenticated();
 
     return NextResponse.json(
       {
         authenticated: true,
-        user: {
-          id: user.id,
-          username: user.username,
-        },
-        isAdmin: Boolean(admin),
+        user: { id: user.id, username: user.username },
+        isAdmin: user.is_admin,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: noStore }
     );
   } catch {
     return NextResponse.json(
-      { authenticated: false },
-      { headers: { "Cache-Control": "no-store" } }
+      { error: "Erreur de vérification du compte." },
+      { status: 500, headers: noStore }
     );
   }
 }

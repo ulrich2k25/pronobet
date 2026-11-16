@@ -2,8 +2,7 @@
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-
+import { getDb } from "@/lib/db";
 const schema = z.object({
   username: z.string().min(3).max(30),
   password: z.string().min(6).max(100),
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
     if (!secret) {
       return NextResponse.json(
         { error: "Configuration serveur manquante." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -35,64 +34,57 @@ export async function POST(req: Request) {
     if (!code) {
       return NextResponse.json(
         { error: "Code promo requis." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const password_hash = await bcrypt.hash(password, 12);
 
-    // Inscription atomique : compte + utilisation du code promo
-    const { data, error } = await supabaseAdmin.rpc(
-      "register_pronobet_user",
-      {
-        p_username: username,
-        p_password_hash: password_hash,
-        p_promo_code: code,
-      }
-    );
+    let user: RegisteredUser | undefined;
 
-    if (error) {
-      if (error.message.includes("INVALID_PROMO_CODE")) {
+    try {
+      const sql = getDb();
+      const rows = await sql`
+        SELECT id, username, created_at
+        FROM public.register_pronobet_user(${username}, ${password_hash}, ${code})
+      `;
+      user = rows[0] as RegisteredUser | undefined;
+    } catch (error) {
+      const dbError = error as { code?: string; message?: string };
+
+      if (dbError.message?.includes("INVALID_PROMO_CODE")) {
         return NextResponse.json(
           { error: "Code promo invalide, inactif ou épuisé." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      if (error.code === "23505") {
+      if (dbError.code === "23505") {
         return NextResponse.json(
           { error: "Nom d'utilisateur déjà utilisé." },
-          { status: 409 }
+          { status: 409 },
         );
       }
 
       console.error("Erreur inscription PronoBet:", error);
-
       return NextResponse.json(
         { error: "Impossible de créer le compte." },
-        { status: 500 }
+        { status: 500 },
       );
     }
-
-    const user = (data as RegisteredUser[] | null)?.[0];
 
     if (!user) {
       return NextResponse.json(
         { error: "Erreur lors de la création du compte." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const token = jwt.sign(
-      { sub: user.id, username: user.username },
-      secret,
-      { expiresIn: "30d" }
-    );
+    const token = jwt.sign({ sub: user.id, username: user.username }, secret, {
+      expiresIn: "30d",
+    });
 
-    const res = NextResponse.json(
-      { ok: true, user },
-      { status: 201 }
-    );
+    const res = NextResponse.json({ ok: true, user }, { status: 201 });
 
     res.cookies.set({
       name: "pb_token",
@@ -109,15 +101,12 @@ export async function POST(req: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Informations d'inscription invalides." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Erreur inscription:", error);
 
-    return NextResponse.json(
-      { error: "Requête invalide." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 }

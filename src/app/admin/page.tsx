@@ -1,7 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/adminAuth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDb } from "@/lib/db";
 import { createPromoCode, togglePromoCode } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -33,33 +33,51 @@ export default async function AdminPage({ searchParams }: Props) {
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
   const week = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  let usersQuery = supabaseAdmin.from("users")
-    .select("id,username,created_at", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
-  if (search) usersQuery = usersQuery.ilike("username", `%${search.replace(/[%_]/g, "\\$&")}%`);
+  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  const offset = (page - 1) * PAGE_SIZE;
+  const data = await (async () => {
+    try {
+      const sql = getDb();
+      return await Promise.all([
+        sql`
+          SELECT count(*) AS total,
+            count(*) FILTER (WHERE created_at >= ${today}) AS today_count,
+            count(*) FILTER (WHERE created_at >= ${week}) AS week_count,
+            count(*) FILTER (WHERE ${search === ""} OR username ILIKE ${pattern}) AS matched
+          FROM public.users
+        `,
+        sql`
+          SELECT id, username, created_at
+          FROM public.users
+          WHERE ${search === ""} OR username ILIKE ${pattern}
+          ORDER BY created_at DESC
+          LIMIT ${PAGE_SIZE} OFFSET ${offset}
+        `,
+        sql`
+          SELECT code, is_active, max_uses, uses_count, created_at
+          FROM public.promo_codes
+          ORDER BY created_at DESC
+        `,
+      ]);
+    } catch {
+      console.error("PronoBet admin: erreur de chargement des données");
+      return null;
+    }
+  })();
 
-  const [total, todayCount, weekCount, usersResult, promosResult] = await Promise.all([
-    supabaseAdmin.from("users").select("id", { count: "exact", head: true }),
-    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", today),
-    supabaseAdmin.from("users").select("id", { count: "exact", head: true }).gte("created_at", week),
-    usersQuery,
-    supabaseAdmin.from("promo_codes").select("code,is_active,max_uses,uses_count,created_at").order("created_at", { ascending: false }),
-  ]);
-  const hasError = [total, todayCount, weekCount, usersResult, promosResult].some((r) => r.error);
-  if (hasError) {
-    console.error("PronoBet admin: erreur de chargement des données");
+  if (!data) {
     return <main className="min-h-screen bg-[#07110f] p-8 text-white">Impossible de charger l'administration. <Link href="/admin" className="text-lime-300 underline">Réessayer</Link></main>;
   }
-  const users = (usersResult.data ?? []) as User[];
-  const promos = (promosResult.data ?? []) as Promo[];
-  const totalPages = Math.max(1, Math.ceil((usersResult.count ?? 0) / PAGE_SIZE));
-  const stats = [
-    ["Utilisateurs inscrits", total.count ?? 0],
-    ["Inscriptions aujourd'hui (UTC)", todayCount.count ?? 0],
-    ["Inscriptions sur 7 jours", weekCount.count ?? 0],
-  ] as const;
 
+  const [[counts], userRows, promoRows] = data;
+  const users = userRows as User[];
+  const promos = promoRows as Promo[];
+  const totalPages = Math.max(1, Math.ceil(Number(counts.matched) / PAGE_SIZE));
+  const stats = [
+    ["Utilisateurs inscrits", Number(counts.total)],
+    ["Inscriptions aujourd'hui (UTC)", Number(counts.today_count)],
+    ["Inscriptions sur 7 jours", Number(counts.week_count)],
+  ] as const;
   return <main className="min-h-screen bg-[#07110f] px-4 py-8 text-white sm:px-8">
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
@@ -82,3 +100,4 @@ export default async function AdminPage({ searchParams }: Props) {
     </div>
   </main>;
 }
+

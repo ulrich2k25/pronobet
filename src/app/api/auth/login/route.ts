@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDb } from "@/lib/db";
 
 const schema = z.object({
   username: z.string().min(3).max(30),
@@ -10,22 +10,29 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  const body = await req.json().catch(() => null);
+  const parsed = schema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+  }
+
+  const { username, password } = parsed.data;
+
   try {
-    const body = await req.json();
-    const { username, password } = schema.parse(body);
+    const sql = getDb();
+    const users = await sql`
+      SELECT u.id, u.username, u.password_hash,
+        EXISTS (
+          SELECT 1 FROM public.admin_users AS a WHERE a.user_id = u.id
+        ) AS is_admin
+      FROM public.users AS u
+      WHERE u.username = ${username}
+      LIMIT 2
+    `;
 
-    const { data: user, error } = await supabaseAdmin
-      .from("users")
-      .select("id,username,password_hash")
-      .eq("username", username)
-      .maybeSingle();
-
-    if (error || !user) {
-      return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
-    }
-
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) {
+    const user = users[0];
+    if (users.length !== 1 || !(await bcrypt.compare(password, user.password_hash))) {
       return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
     }
 
@@ -38,36 +45,20 @@ export async function POST(req: Request) {
       expiresIn: "30d",
     });
 
-    const { data: admin, error: adminError } = await supabaseAdmin
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (adminError) {
-      console.error("Erreur vérification administrateur:", adminError.message);
-      return NextResponse.json({ error: "Erreur de connexion." }, { status: 500 });
-    }
-
-    const res = NextResponse.json(
-      { ok: true, isAdmin: Boolean(admin) },
-      { status: 200 }
-    );
-
-    const isProd = process.env.NODE_ENV === "production";
-
+    const res = NextResponse.json({ ok: true, isAdmin: user.is_admin });
     res.cookies.set({
       name: "pb_token",
       value: token,
       httpOnly: true,
       sameSite: "lax",
-      secure: isProd, // ✅ IMPORTANT sur Vercel/HTTPS (iPhone & in-app)
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
 
     return res;
-  } catch (e: any) {
-    return NextResponse.json({ error: "Requête invalide.", details: e?.message }, { status: 400 });
+  } catch {
+    console.error("Erreur de connexion Pronobet.");
+    return NextResponse.json({ error: "Erreur de connexion." }, { status: 500 });
   }
 }

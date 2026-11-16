@@ -1,9 +1,9 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/adminAuth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDb } from "@/lib/db";
 
 function result(message: string, ok = false): never {
   redirect(`/admin?${ok ? "success" : "error"}=${encodeURIComponent(message)}`);
@@ -20,13 +20,16 @@ export async function createPromoCode(formData: FormData) {
     if (!Number.isSafeInteger(parsed) || parsed < 1) result("La limite doit être un entier positif.");
     maxUses = parsed;
   }
-  const { error } = await supabaseAdmin.from("promo_codes").insert({
-    code,
-    is_active: true,
-    max_uses: maxUses,
-    uses_count: 0,
-  });
-  if (error) result(error.code === "23505" ? "Ce code existe déjà." : "Création impossible.");
+  try {
+    const sql = getDb();
+    await sql`
+      INSERT INTO public.promo_codes (code, is_active, max_uses, uses_count)
+      VALUES (${code}, true, ${maxUses}, 0)
+    `;
+  } catch (error) {
+    const dbError = error as { code?: string };
+    result(dbError.code === "23505" ? "Ce code existe déjà." : "Création impossible.");
+  }
   revalidatePath("/admin");
   result("Code créé.", true);
 }
@@ -38,11 +41,17 @@ export async function togglePromoCode(formData: FormData) {
   if (!/^[A-Z0-9_-]{3,30}$/.test(code) || !["true", "false"].includes(next)) {
     result("Modification invalide.");
   }
-  const { error } = await supabaseAdmin
-    .from("promo_codes")
-    .update({ is_active: next === "true" })
-    .eq("code", code);
-  if (error) result("Modification impossible.");
+  try {
+    const sql = getDb();
+    await sql`
+      UPDATE public.promo_codes
+      SET is_active = ${next === "true"}
+      WHERE code = ${code}
+    `;
+  } catch {
+    result("Modification impossible.");
+  }
   revalidatePath("/admin");
   result("Statut mis à jour.", true);
 }
+

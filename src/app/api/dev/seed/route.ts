@@ -1,25 +1,17 @@
 ﻿import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDb } from "@/lib/db";
 
 export async function POST() {
   // 1) Tables attendues: teams(id,name,country,logo_url) & fixtures(id,home_team_id,away_team_id,starts_at)
   // 2) On seed seulement si teams est vide
 
-  const { count, error: countErr } = await supabaseAdmin
-    .from("teams")
-    .select("*", { count: "exact", head: true });
+  try {
+    const sql = getDb();
+    const [state] = await sql`SELECT EXISTS (SELECT 1 FROM public.teams) AS seeded`;
 
-  if (countErr) {
-    return NextResponse.json(
-      { ok: false, error: "DB error", details: countErr.message },
-      { status: 500 }
-    );
-  }
-
-  if ((count ?? 0) > 0) {
-    return NextResponse.json({ ok: true, seeded: false, message: "Already seeded" });
-  }
-
+    if (state.seeded) {
+      return NextResponse.json({ ok: true, seeded: false, message: "Already seeded" });
+    }
   const teams = [
     { id: 1, name: "Liverpool", country: "England", logo_url: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
     { id: 2, name: "Manchester City", country: "England", logo_url: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
@@ -39,11 +31,21 @@ export async function POST() {
     { id: 104, home_team_id: 1, away_team_id: 5, starts_at: plusHours(50) }
   ];
 
-  const { error: tErr } = await supabaseAdmin.from("teams").insert(teams);
-  if (tErr) return NextResponse.json({ ok: false, error: tErr.message }, { status: 500 });
+    await sql.transaction([
+      sql`
+        INSERT INTO public.teams (id, name, country, logo_url)
+        SELECT id, name, country, logo_url
+        FROM jsonb_populate_recordset(NULL::public.teams, ${JSON.stringify(teams)}::jsonb)
+      `,
+      sql`
+        INSERT INTO public.fixtures (id, home_team_id, away_team_id, starts_at)
+        SELECT id, home_team_id, away_team_id, starts_at
+        FROM jsonb_populate_recordset(NULL::public.fixtures, ${JSON.stringify(fixtures)}::jsonb)
+      `,
+    ]);
 
-  const { error: fErr } = await supabaseAdmin.from("fixtures").insert(fixtures);
-  if (fErr) return NextResponse.json({ ok: false, error: fErr.message }, { status: 500 });
-
-  return NextResponse.json({ ok: true, seeded: true });
+    return NextResponse.json({ ok: true, seeded: true });
+  } catch {
+    return NextResponse.json({ ok: false, error: "DB error" }, { status: 500 });
+  }
 }
